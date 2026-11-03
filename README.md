@@ -24,3 +24,4 @@ No installation or build step is required:
 - **HTML5**: Semantic document structure
 - **CSS3**: Responsive flexbox/grid layout and modern styling
 - **JavaScript (ES6+)**: DOM manipulation and `localStorage` API
+
