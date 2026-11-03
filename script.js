@@ -1,6 +1,6 @@
 /**
  * Music List App
- * Pure JavaScript with LocalStorage persistence
+ * Pure JavaScript with LocalStorage persistence and 1-5 Star Ratings
  */
 
 // Storage key for LocalStorage
@@ -12,6 +12,9 @@ const formHeading = document.getElementById('form-heading');
 const titleInput = document.getElementById('music-title');
 const authorInput = document.getElementById('music-author');
 const statusSelect = document.getElementById('music-status');
+const ratingInput = document.getElementById('music-rating');
+const ratingDisplayText = document.getElementById('rating-display-text');
+const starButtons = document.querySelectorAll('.star-btn');
 const editIdInput = document.getElementById('edit-id');
 const submitBtnText = document.getElementById('submit-btn-text');
 const cancelEditBtn = document.getElementById('cancel-edit-btn');
@@ -24,13 +27,34 @@ const emptyState = document.getElementById('empty-state');
 const noSearchResults = document.getElementById('no-search-results');
 
 /**
- * Retrieve the list of music from LocalStorage
+ * Retrieve the list of music from LocalStorage.
+ * Automatically guarantees all items (already added or newly added) have a rating between 1 and 5.
  * @returns {Array} List of music objects
  */
 function getMusicList() {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+    if (!data) return [];
+
+    const list = JSON.parse(data);
+    let updated = false;
+
+    // Migrate/validate any existing items to ensure they possess a 1-5 star rating
+    const validatedList = list.map((item) => {
+      const parsedRating = parseInt(item.rating, 10);
+      const validRating = parsedRating >= 1 && parsedRating <= 5 ? parsedRating : 5;
+      if (item.rating !== validRating) {
+        updated = true;
+        return { ...item, rating: validRating };
+      }
+      return item;
+    });
+
+    if (updated) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(validatedList));
+    }
+
+    return validatedList;
   } catch (error) {
     console.error('Error reading from localStorage:', error);
     return [];
@@ -70,6 +94,88 @@ function escapeHtml(str) {
 }
 
 /**
+ * Set the rating value in the add/edit form and update visual star states
+ * @param {number} rating - Rating between 1 and 5
+ */
+function setFormRating(rating) {
+  const safeRating = Math.max(1, Math.min(5, parseInt(rating, 10) || 5));
+  ratingInput.value = safeRating;
+  ratingDisplayText.textContent = `${safeRating} of 5 star${safeRating > 1 ? 's' : ''}`;
+
+  starButtons.forEach((btn) => {
+    const btnRating = parseInt(btn.dataset.rating, 10);
+    if (btnRating <= safeRating) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+}
+
+/**
+ * Setup interactive hover and click listeners for the star picker
+ */
+function setupStarPicker() {
+  starButtons.forEach((btn) => {
+    const btnRating = parseInt(btn.dataset.rating, 10);
+
+    // Hover effect
+    btn.addEventListener('mouseenter', () => {
+      starButtons.forEach((b) => {
+        const bRating = parseInt(b.dataset.rating, 10);
+        if (bRating <= btnRating) {
+          b.classList.add('hovered');
+        } else {
+          b.classList.remove('hovered');
+        }
+      });
+      ratingDisplayText.textContent = `${btnRating} of 5 star${btnRating > 1 ? 's' : ''}`;
+    });
+
+    btn.addEventListener('mouseleave', () => {
+      starButtons.forEach((b) => b.classList.remove('hovered'));
+      const currentRating = parseInt(ratingInput.value, 10) || 5;
+      ratingDisplayText.textContent = `${currentRating} of 5 star${currentRating > 1 ? 's' : ''}`;
+    });
+
+    // Click to select
+    btn.addEventListener('click', () => {
+      setFormRating(btnRating);
+    });
+  });
+}
+
+/**
+ * Helper to render 1-5 star badges for a track card
+ * @param {number} rating - Star rating (1-5)
+ * @param {string} itemId - ID of the track
+ * @returns {string} HTML string for the star rating
+ */
+function renderStars(rating, itemId) {
+  const safeRating = Math.max(1, Math.min(5, parseInt(rating, 10) || 5));
+  let starsHtml = '';
+  for (let i = 1; i <= 5; i++) {
+    const isFilled = i <= safeRating;
+    starsHtml += `<span 
+      class="star ${isFilled ? 'filled' : 'empty'}" 
+      data-action="quick-rate" 
+      data-id="${itemId}" 
+      data-rating="${i}" 
+      title="Set rating to ${i} star${i > 1 ? 's' : ''}"
+      role="button"
+      aria-label="${i} star"
+    >★</span>`;
+  }
+
+  return `
+    <div class="item-rating" aria-label="Rating: ${safeRating} of 5 stars">
+      <div class="stars-group">${starsHtml}</div>
+      <span class="rating-score">${safeRating}/5</span>
+    </div>
+  `;
+}
+
+/**
  * Render the music list to the DOM based on optional search filter
  */
 function renderList() {
@@ -105,6 +211,7 @@ function renderList() {
       const isPlay = item.status === 'Play';
       const statusClass = isPlay ? 'status-play' : 'status-not-play';
       const statusIcon = isPlay ? '▶' : '⏸';
+      const rating = item.rating || 5;
 
       const li = document.createElement('li');
       li.className = 'music-item';
@@ -114,11 +221,12 @@ function renderList() {
         <div class="item-main">
           <div class="item-title">${escapeHtml(item.title)}</div>
           <div class="item-author">By ${escapeHtml(item.author)}</div>
-          <div class="item-status-wrapper">
+          <div class="item-meta">
             <span class="status-pill ${statusClass}">
               <span>${statusIcon}</span>
               <span>${escapeHtml(item.status)}</span>
             </span>
+            ${renderStars(rating, item.id)}
           </div>
         </div>
         <div class="item-actions">
@@ -156,6 +264,7 @@ function renderList() {
 function resetForm() {
   musicForm.reset();
   editIdInput.value = '';
+  setFormRating(5);
   formHeading.textContent = 'Add New Music';
   submitBtnText.textContent = 'Add Music';
   cancelEditBtn.classList.add('hidden');
@@ -172,6 +281,7 @@ function handleFormSubmit(e) {
   const title = titleInput.value.trim();
   const author = authorInput.value.trim();
   const status = statusSelect.value;
+  const rating = parseInt(ratingInput.value, 10) || 5;
   const editId = editIdInput.value;
 
   if (!title || !author) {
@@ -190,6 +300,7 @@ function handleFormSubmit(e) {
         title,
         author,
         status,
+        rating,
         updatedAt: Date.now()
       };
     }
@@ -200,6 +311,7 @@ function handleFormSubmit(e) {
       title,
       author,
       status,
+      rating,
       createdAt: Date.now()
     };
     list.unshift(newItem); // Add new items to the top of list
@@ -225,6 +337,7 @@ function editMusic(id) {
   titleInput.value = itemToEdit.title;
   authorInput.value = itemToEdit.author;
   statusSelect.value = itemToEdit.status;
+  setFormRating(itemToEdit.rating || 5);
 
   // Update UI for editing mode
   formHeading.textContent = 'Edit Music';
@@ -267,11 +380,11 @@ function deleteMusic(id) {
 }
 
 /**
- * Delegate click events for edit and delete buttons in the music list
+ * Delegate click events for edit, delete, and quick-rating in the music list
  * @param {Event} e - Click event
  */
 function handleListClick(e) {
-  const target = e.target.closest('button[data-action]');
+  const target = e.target.closest('[data-action]');
   if (!target) return;
 
   const action = target.dataset.action;
@@ -281,6 +394,23 @@ function handleListClick(e) {
     editMusic(id);
   } else if (action === 'delete') {
     deleteMusic(id);
+  } else if (action === 'quick-rate') {
+    const newRating = parseInt(target.dataset.rating, 10);
+    if (newRating >= 1 && newRating <= 5 && id) {
+      const list = getMusicList();
+      const item = list.find((m) => m.id === id);
+      if (item) {
+        item.rating = newRating;
+        item.updatedAt = Date.now();
+        saveMusicList(list);
+        renderList();
+
+        // If this item is currently open in the edit form, sync form rating
+        if (editIdInput.value === id) {
+          setFormRating(newRating);
+        }
+      }
+    }
   }
 }
 
@@ -298,6 +428,10 @@ musicList.addEventListener('click', handleListClick);
 searchInput.addEventListener('input', () => {
   renderList();
 });
+
+// Setup star rating widget
+setupStarPicker();
+setFormRating(5);
 
 // Initialize on page load safely whether DOM is loading or already parsed
 if (document.readyState === 'loading') {

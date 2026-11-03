@@ -4,7 +4,8 @@ A lightweight, responsive music tracking web application built with pure HTML, C
 
 ## ✨ Features
 
-- **Add Tracks**: Save music items with Title, Author / Artist, and Play status (Play or Not Play).
+- **Add Tracks**: Save music items with Title, Author / Artist, Play status (Play or Not Play), and a 1-to-5 star rating.
+- **Star Rating (1-5 Stars)**: Interactive star picker when adding or editing, plus 1-click quick rating directly on any track card in the list.
 - **Edit Music**: Easily update the details of any track in your library.
 - **Delete with Confirmation**: Prevents accidental deletions with a verification prompt.
 - **Live Search**: Instant real-time search filtering across titles and artists.

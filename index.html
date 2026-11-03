@@ -58,6 +58,21 @@
             </select>
           </div>
 
+          <div class="form-group">
+            <label id="rating-label">Rating (1 to 5 Stars) <span class="required">*</span></label>
+            <div class="star-picker" id="star-picker" role="radiogroup" aria-labelledby="rating-label">
+              <div class="star-buttons">
+                <button type="button" class="star-btn" data-rating="1" aria-label="1 star" title="1 star">★</button>
+                <button type="button" class="star-btn" data-rating="2" aria-label="2 stars" title="2 stars">★</button>
+                <button type="button" class="star-btn" data-rating="3" aria-label="3 stars" title="3 stars">★</button>
+                <button type="button" class="star-btn" data-rating="4" aria-label="4 stars" title="4 stars">★</button>
+                <button type="button" class="star-btn" data-rating="5" aria-label="5 stars" title="5 stars">★</button>
+              </div>
+              <span class="rating-display-text" id="rating-display-text">5 of 5 stars</span>
+            </div>
+            <input type="hidden" id="music-rating" name="rating" value="5">
+          </div>
+
           <div class="form-actions">
             <button type="submit" id="submit-btn" class="btn btn-primary">
               <span id="submit-btn-text">Add Music</span>

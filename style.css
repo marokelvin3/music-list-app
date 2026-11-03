@@ -354,6 +354,105 @@ select:focus {
   word-break: break-word;
 }
 
+/* ==========================================================================
+   Star Rating Styles (Form & List)
+   ========================================================================== */
+.star-picker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 6px 0;
+}
+
+.star-buttons {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.star-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.75rem;
+  line-height: 1;
+  color: #cbd5e1;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s ease, transform 0.15s ease;
+  min-width: 36px;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.star-btn:hover {
+  transform: scale(1.15);
+}
+
+.star-btn.active,
+.star-btn.hovered {
+  color: #f59e0b;
+}
+
+.rating-display-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* Item Meta (Status & Rating row) */
+.item-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.item-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #fffbeb;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  cursor: default;
+}
+
+.item-rating .stars-group {
+  display: inline-flex;
+  gap: 1px;
+}
+
+.item-rating .star {
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.item-rating .star:hover {
+  transform: scale(1.25);
+}
+
+.item-rating .star.filled {
+  color: #f59e0b;
+}
+
+.item-rating .star.empty {
+  color: #d1d5db;
+}
+
+.rating-score {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #b45309;
+  margin-left: 2px;
+}
+
 .item-status-wrapper {
   margin-top: 4px;
 }
